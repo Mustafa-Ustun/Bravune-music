@@ -246,6 +246,13 @@ macOS product experience (real-world, Level 4 on the real macOS app, 2026-10-01)
         com.apple.security.files.bookmarks.app-scope, which persistent bookmarks need.
         3 new tests in FolderBookmarkTests (round trip, garbage data, adapter restore and
         disconnect). Not tested inside a real sandbox: that needs the paid program (section 4).
+  WRITTEN, NOT VERIFIED  Universal build option (2026-10-02)
+        Written in the Linux cloud session, no Swift toolchain, never run. Level 0 only.
+        Scripts/package.sh now accepts UNIVERSAL=1 (swift build --arch arm64 --arch x86_64)
+        and refuses to package unless lipo reports both architectures. Without UNIVERSAL the
+        script behaves as before. Needs a run on the Mac: UNIVERSAL=1 Scripts/package.sh, then
+        lipo -archs dist/Bravune.app/Contents/MacOS/Bravune. The x86_64 half was never launched
+        (no Intel Mac or Rosetta check), so only the build is covered, not behaviour.
 
 ==================================================================
 4. APPLE MUSIC AND THE APPLE DEVELOPER PROGRAM: WHAT IS ACTUALLY KNOWN
@@ -290,7 +297,8 @@ Unknown:
      for shuffle and repeat (repeat itself does not exist yet).
   8. RESOLVED 2026-10-01: seek slider, volume slider, queue drag-to-reorder and removing queue
      items were driven with real mouse input in the packaged app (see section 3).
-  9. The build is arm64 only.
+  9. CODE WRITTEN 2026-10-02, NOT RUN (see section 3): UNIVERSAL=1 Scripts/package.sh builds arm64 and
+     x86_64. The default build is still arm64 only.
  10. CODE WRITTEN 2026-10-02, NOT COMPILED OR TESTED (see section 3): the folder is also stored as
      a security-scoped bookmark. Needs build, test run and a check on the Mac. Real sandbox
      behaviour can only be seen in a sandboxed build.
