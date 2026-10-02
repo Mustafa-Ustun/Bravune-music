@@ -102,19 +102,20 @@ final class AppState {
     }
 
     func play(_ track: UnifiedTrack, in list: [UnifiedTrack]) {
-        guard let index = list.firstIndex(where: { $0.id == track.id }) else { return }
+        let playable = list.filter { !$0.isUnplayable || $0.id == track.id }
+        guard let index = playable.firstIndex(where: { $0.id == track.id }) else { return }
         player.stop()
         queue.clear()
-        queue.add(contentsOf: list)
+        queue.add(contentsOf: playable)
         player.play(at: index)
     }
 
     func enqueue(_ tracks: [UnifiedTrack]) {
-        queue.add(contentsOf: tracks)
+        queue.add(contentsOf: tracks.filter { !$0.isUnplayable })
     }
 
     func playNext(_ tracks: [UnifiedTrack]) {
-        queue.insertNext(tracks)
+        queue.insertNext(tracks.filter { !$0.isUnplayable })
     }
 
     func removeFromQueue(at index: Int) {

@@ -294,4 +294,27 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.player.state, .stopped)
         XCTAssertTrue(state.queue.tracks.isEmpty)
     }
+
+    func testUnplayableTracksStayOutOfTheQueue() async {
+        var tracks = syntheticTracks(ProviderID(rawValue: "alpha"), count: 4)
+        tracks[3].metadata[UnifiedTrack.unplayableKey] = "1"
+        let a = FakeAdapter(id: "alpha", tracks: tracks)
+        let state = makeState([a])
+        await state.refreshLibrary()
+        let broken = state.library.first { $0.isUnplayable }!
+        let playable = state.library.filter { !$0.isUnplayable }
+
+        state.play(playable[0], in: state.library)
+        XCTAssertEqual(state.queue.tracks, playable)
+
+        state.clearQueue()
+        state.enqueue(state.library)
+        XCTAssertEqual(state.queue.tracks, playable)
+
+        state.playNext([broken])
+        XCTAssertEqual(state.queue.tracks, playable)
+
+        state.play(broken, in: state.library)
+        XCTAssertTrue(state.queue.tracks.contains(broken))
+    }
 }
