@@ -343,7 +343,7 @@ Unknown:
      Jellyfin token, Spotify token) were not exercised through the packaged UI. Only the
      automated Keychain round-trip test covers them. Checklist, about 15 minutes. Use a
      throwaway Claude key value such as "test-key-123" (nothing calls the API when saving):
-     Keychain service is "com.bravune.app"; accounts: Claude key (see AIKey.account),
+     Keychain service is "com.bravune.app"; accounts: anthropic.apiKey (Claude key),
      subsonic.password, jellyfin.token, spotify.refreshToken. Run Scripts/package.sh and open
      dist/Bravune.app. To look at entries use Keychain Access (search "com.bravune.app") or:
        security find-generic-password -s com.bravune.app -a <account>
