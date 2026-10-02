@@ -51,7 +51,8 @@ Provider work runs in PARALLEL. A provider blocked on credentials (for example N
 never blocks the rest of Bravune development.
 
 ------------------------------------------------------------------
-SPOTIFY: ON HOLD  (decision of the owner, 2026-10-01)
+SPOTIFY: ON HOLD for paid use (owner, 2026-10-01); a priority provider for a non-commercial
+build only (owner, 2026-10-02, see PRIORITY PROVIDERS)
 ------------------------------------------------------------------
 Spotify is ignored completely until Bravune has about 250,000 active users.
 No real Spotify validation, no Spotify credentials or dashboard setup, no preparation work,
@@ -368,6 +369,42 @@ Unknown:
      OPEN. Report what happened per step; nothing here counts as verified until then.
 
 ==================================================================
+PRIORITY PROVIDERS (owner decision 2026-10-02)
+==================================================================
+The owner wants the big mainstream providers as the FIRST priority providers, ahead of
+smaller or self-hosted ones. Order, with what is true for each today:
+
+  1. Apple Music   Code DONE. Library playback validated on the real Mac (Level 4).
+                   Open: catalog search and streaming (needs the paid Apple Developer Program,
+                   section 4), Apple Music artwork (issue 5), a library with real songs and a
+                   subscription to test streamed songs.
+  2. Spotify       Code and mock tests exist (Level 3). Real validation never done.
+                   Needs: Client ID with redirect http://127.0.0.1:8888/callback, owner account
+                   added to the app, Spotify Premium, Spotify desktop app signed in.
+                   BLOCKER for a PAID Bravune (section 2): Spotify's terms do not allow
+                   commercial use of an app that controls playback, and extended quota needs a
+                   registered organisation with about 250,000 monthly users. A free,
+                   non-commercial build (up to 5 users in Development Mode) is the only route
+                   today. The 2026-10-01 "on hold" decision in section 2 is therefore now
+                   "priority, but only as a non-commercial build"; it is NOT a revenue plan.
+                   Owner must confirm that reading (section 8).
+  3. Deezer        NOT startable: new API access for individuals is disabled, the playback
+                   SDKs are deprecated and only 30 second previews exist. Re-check the Deezer
+                   developer pages on a schedule and start the day access reopens.
+  4. Next, in the order of section 6, Workstream 3 research: TIDAL (no native macOS player
+     SDK), YouTube Music (policy-blocked), SoundCloud (terms conflict with a unified queue),
+     Amazon Music (closed beta), Qobuz (partner approval).
+  Already in code and kept: Local Music, Subsonic/Navidrome, Jellyfin (unverified).
+  NOT started and not scheduled: internet radio (needs a live-stream design first), Plex.
+
+Priority does not remove a blocker. Each provider keeps the facts written above, and none of
+them is worked on in a way those facts forbid. Work that is allowed now for each provider:
+  - Apple Music: artwork research, behaviour checks on the Mac.
+  - Spotify: real-world validation in a non-commercial build once the owner supplies the
+    items above. Paid builds must not contain Spotify code (section 2).
+  - Deezer: watching for access only.
+
+==================================================================
 6. WORKSTREAMS AND PRIORITIES
 ==================================================================
 
@@ -605,7 +642,8 @@ Item 4 is not waiting for credentials. It is on hold by decision (section 2).
   - Core Bravune usage must never call the Claude API. Only an explicit Pro+ AI action may.
   - Do not remove the AI code or its tests. AI stays architecturally ready.
   - A provider blocked on credentials must not block work on other providers or workstreams.
-  - Spotify is on hold (section 2). Do not work on it, test it or plan revenue around it.
+  - Spotify: never plan revenue around it and keep it out of paid builds (section 2). Real
+    validation in a free, non-commercial build is allowed once the owner provides the items.
   - The menu bar controller must use the existing Player and UnifiedQueue only.
 
 ==================================================================
@@ -614,7 +652,8 @@ Item 4 is not waiting for credentials. It is on hold by decision (section 2).
 
   - Approve or change the bundle identifier com.mustafaustun.bravune before any registration.
   - Provide Navidrome credentials whenever ready. They do not block other work.
-  - Spotify credentials are NOT needed. Spotify is on hold (section 2).
+  - Spotify: confirm it is a priority for a NON-COMMERCIAL build only, then provide a Client ID,
+    the Premium account and the desktop app when ready (see PRIORITY PROVIDERS).
   - Claude API key: NOT needed now. Only needed when Workstream 6 starts.
   - Decide how initial real users will be reached and how usage will be measured (Workstream 4).
   - Decide whether and when to join the paid Apple Developer Program.
