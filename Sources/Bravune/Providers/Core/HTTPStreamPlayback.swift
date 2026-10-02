@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 
 @MainActor
-final class SubsonicPlayback: TrackPlayback {
+final class HTTPStreamPlayback: TrackPlayback {
     private let streamURL: @MainActor (String) throws -> URL
     private let player = AVPlayer()
     private var finishObserver: NSObjectProtocol?

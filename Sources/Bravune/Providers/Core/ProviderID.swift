@@ -11,4 +11,5 @@ struct ProviderID: RawRepresentable, Hashable, Codable, Sendable {
     static let spotify = ProviderID(rawValue: "spotify")
     static let subsonic = ProviderID(rawValue: "subsonic")
     static let appleMusic = ProviderID(rawValue: "apple_music")
+    static let jellyfin = ProviderID(rawValue: "jellyfin")
 }

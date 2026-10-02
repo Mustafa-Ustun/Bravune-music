@@ -10,7 +10,7 @@ Product:            Bravune, a native macOS music app (macOS only in V1)
 Build system:       Swift Package Manager (no Xcode project)
 Architecture:       Provider -> Provider Adapter -> UnifiedTrack -> UnifiedQueue -> Player
                     Mix Engine and AI Engine feed UnifiedQueue. AI never touches Player.
-Providers in code:  Local Music, Subsonic/Navidrome, Spotify (ON HOLD, see section 2), Apple Music
+Providers in code:  Local Music, Subsonic/Navidrome, Jellyfin (new, unverified), Spotify (ON HOLD, see section 2), Apple Music
 Automated tests:    219 tests, 0 failures, 0 warnings (app target and test target)
 Bundle identifier:  com.mustafaustun.bravune (chosen by the assistant, still needs the owner's approval)
 Signing team:       Free Personal Team, Team ID N9PBU9A64D (Apple Development certificate)
@@ -253,6 +253,21 @@ macOS product experience (real-world, Level 4 on the real macOS app, 2026-10-01)
         script behaves as before. Needs a run on the Mac: UNIVERSAL=1 Scripts/package.sh, then
         lipo -archs dist/Bravune.app/Contents/MacOS/Bravune. The x86_64 half was never launched
         (no Intel Mac or Rosetta check), so only the build is covered, not behaviour.
+  WRITTEN, NOT VERIFIED  Jellyfin provider (2026-10-02)
+        Written in the Linux cloud session, no Swift toolchain: NEVER COMPILED, no test run,
+        no Jellyfin server seen. Level 0 only. It may contain compile errors.
+        Providers/Jellyfin/JellyfinClient.swift and JellyfinAdapter.swift, ProviderID.jellyfin,
+        registered in AppState. Login: POST /Users/AuthenticateByName, then the access token
+        (not the password) is kept in the Keychain; the password is never stored. Library:
+        GET /Items (Audio, recursive, pages of 500). Artwork from the track or its album.
+        Playback: /Audio/{id}/universal with api_key, mp3 transcoding as fallback.
+        401 on a library call shows "Connect again". Based on the public API as described in
+        search results and community clients; the official Jellyfin API reference was NOT read,
+        so field names and the universal-endpoint parameters need checking against a real server.
+        Playback class SubsonicPlayback was renamed HTTPStreamPlayback (Providers/Core) and is
+        shared by Subsonic and Jellyfin; behaviour unchanged, tests renamed accordingly.
+        10 new tests in JellyfinClientTests (URLProtocol stub, Level 3 at best once they run).
+        Needs on the Mac: swift build, swift test, then Level 4 against a real Jellyfin server.
 
 ==================================================================
 4. APPLE MUSIC AND THE APPLE DEVELOPER PROGRAM: WHAT IS ACTUALLY KNOWN
@@ -386,6 +401,9 @@ and none has to be finished before moving on to other workstreams.
     Preparation review of the existing code is done and reported separately.
     Goals: real PKCE sign-in, token exchange and refresh, Liked Songs paging, device
     selection, play, pause, seek, volume, track-change detection, end-of-track, errors.
+  Jellyfin real-world validation                       [NEEDS A SERVER AND LOGIN]
+    Same goals as Navidrome below, plus checking the transcoding fallback for formats
+    AVPlayer cannot open (ogg, opus). Code exists but was never compiled (section 3).
   Navidrome / Subsonic real-world validation           [NEEDS CREDENTIALS]
     Needs: a real server address and login.
     Goals: authentication, paging beyond 500 songs, empty-search behaviour, cover art,
@@ -466,8 +484,8 @@ and none has to be finished before moving on to other workstreams.
     Updated result: legally clear today are Local, Navidrome/Subsonic, Apple Music and
     (new) Jellyfin. Plex and Internet radio need a closer look. Jamendo is non-commercial
     only. Bandcamp is closed.
-    Suggested next provider: Jellyfin, because it needs no approval and reuses the
-    Subsonic structure. Owner decision pending.
+    Jellyfin: first version written 2026-10-02, unverified (section 3). Real-server validation
+    (login, paging, artwork, streaming, Keychain, disconnect) is OPEN and needs a server.
 
 ------------------------------------------------------------------
 WORKSTREAM 4: PRODUCT REALIZATION AND MARKET VALIDATION

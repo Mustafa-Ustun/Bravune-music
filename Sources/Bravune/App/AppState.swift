@@ -32,7 +32,7 @@ final class AppState {
     }
 
     convenience init() {
-        self.init(adapters: [LocalMusicAdapter(), SpotifyAdapter(), SubsonicAdapter(), AppleMusicAdapter()])
+        self.init(adapters: [LocalMusicAdapter(), SpotifyAdapter(), SubsonicAdapter(), JellyfinAdapter(), AppleMusicAdapter()])
     }
 
     init(

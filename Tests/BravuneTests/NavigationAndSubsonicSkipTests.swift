@@ -47,7 +47,7 @@ final class SubsonicUnplayableTests: XCTestCase {
     func testNonAudioResponseIsReportedAsUnplayableTrack() async throws {
         let bad = folder.appendingPathComponent("bad.mp3")
         try Data("this is not audio".utf8).write(to: bad)
-        let playback = SubsonicPlayback { _ in bad }
+        let playback = HTTPStreamPlayback { _ in bad }
         do {
             try await playback.load(track("x"))
             XCTFail("expected an error")
@@ -59,13 +59,13 @@ final class SubsonicUnplayableTests: XCTestCase {
     func testRealAudioLoadsWithoutError() async throws {
         let good = folder.appendingPathComponent("good.wav")
         try makeToneFile(at: good, seconds: 1, frequency: 440)
-        let playback = SubsonicPlayback { _ in good }
+        let playback = HTTPStreamPlayback { _ in good }
         try await playback.load(track("y"))
     }
 
     func testStreamURLFailureStaysAProviderErrorAndIsNotTreatedAsUnplayable() async {
         struct Boom: Error {}
-        let playback = SubsonicPlayback { _ in throw Boom() }
+        let playback = HTTPStreamPlayback { _ in throw Boom() }
         do {
             try await playback.load(track("z"))
             XCTFail("expected an error")
