@@ -379,7 +379,7 @@ smaller or self-hosted ones. Order, with what is true for each today:
                    section 4), Apple Music artwork (issue 5), a library with real songs and a
                    subscription to test streamed songs.
   2. Spotify       Code and mock tests exist (Level 3). Real validation never done.
-                   Needs: Client ID with redirect http://127.0.0.1:8888/callback, owner account
+                   Needs: Client ID with redirect bravune://callback, owner account
                    added to the app, Spotify Premium, Spotify desktop app signed in.
                    BLOCKER for a PAID Bravune (section 2): Spotify's terms do not allow
                    commercial use of an app that controls playback, and extended quota needs a
@@ -389,7 +389,7 @@ smaller or self-hosted ones. Order, with what is true for each today:
                    "priority, but only as a non-commercial build"; it is NOT a revenue plan.
                    Owner must confirm that reading (section 8).
                    2026-10-02: the owner registered a Spotify app ("Bravune dev") with redirect
-                   http://127.0.0.1:8888/callback and Web Playback SDK selected; the Web API
+                   bravune://callback and Web Playback SDK selected; the Web API
                    option could NOT be selected on the owner's account (reason not known yet).
                    Its Client ID is now built into SpotifyAdapter, so Connect goes straight to
                    the Spotify login page in the browser (no Client ID dialog). Not compiled,
@@ -465,7 +465,7 @@ and none has to be finished before moving on to other workstreams.
     Do not prepare, test or plan around this until section 2 says it is reopened.
     The notes below are kept only for the day it is reopened.
     Needs: a Spotify developer app Client ID with redirect URI
-    http://127.0.0.1:8888/callback registered, the owner's account added to the app's
+    bravune://callback registered, the owner's account added to the app's
     users, Spotify Premium, and the Spotify desktop app open and signed in on this Mac.
     Preparation review of the existing code is done and reported separately.
     Goals: real PKCE sign-in, token exchange and refresh, Liked Songs paging, device

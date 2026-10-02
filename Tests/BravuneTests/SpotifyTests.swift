@@ -9,8 +9,8 @@ final class SpotifyTests: XCTestCase {
     }
 
     func testFormBodyEncodesReservedCharacters() {
-        let body = String(data: SpotifySession.formBody(["b": "a b+c", "a": "http://127.0.0.1:8888/callback"]), encoding: .utf8)
-        XCTAssertEqual(body, "a=http%3A%2F%2F127.0.0.1%3A8888%2Fcallback&b=a%20b%2Bc")
+        let body = String(data: SpotifySession.formBody(["b": "a b+c", "a": "bravune://callback"]), encoding: .utf8)
+        XCTAssertEqual(body, "a=bravune%3A%2F%2Fcallback&b=a%20b%2Bc")
     }
 
     func testDecodesSavedTracksAndSkipsLocalOrMissing() throws {

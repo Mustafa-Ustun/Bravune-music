@@ -8,7 +8,7 @@ final class JellyfinAdapter: ProviderAdapter {
     private static let serverKey = "bravune.jellyfin.server"
     private static let userIdKey = "bravune.jellyfin.userId"
     private static let userKey = "bravune.jellyfin.user"
-    private static let deviceKey = "bravune.jellyfin.deviceId"
+    nonisolated private static let deviceKey = "bravune.jellyfin.deviceId"
     private static let tokenAccount = "jellyfin.token"
 
     let id = ProviderID.jellyfin

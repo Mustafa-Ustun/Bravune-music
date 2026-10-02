@@ -1,12 +1,12 @@
 import AppKit
+import AuthenticationServices
 import CryptoKit
 import Foundation
 
 @MainActor
 final class SpotifySession {
-    static let redirectPort: UInt16 = 8888
-    static let redirectPath = "/callback"
-    static let redirectURI = "http://127.0.0.1:\(redirectPort)\(redirectPath)"
+    static let callbackScheme = "bravune"
+    static let redirectURI = "\(callbackScheme)://callback"
     static let scopes = "user-library-read user-read-playback-state user-modify-playback-state"
     static let refreshAccount = "spotify.refreshToken"
 
@@ -17,6 +17,8 @@ final class SpotifySession {
     private(set) var refreshToken: String?
     private var token: String?
     private var expiry = Date.distantPast
+    private var signInSession: ASWebAuthenticationSession?
+    private let anchor = WindowAnchor()
 
     init(clientID: String, refreshToken: String? = nil, tokenURL: URL = SpotifySession.defaultTokenURL) {
         self.clientID = clientID
@@ -58,10 +60,8 @@ final class SpotifySession {
         ]
         guard let authorizeURL = components.url else { throw SpotifyError.auth("Could not build the sign-in address") }
 
-        let server = try LoopbackServer(port: Self.redirectPort, path: Self.redirectPath)
-        let items = try await server.wait(timeout: 180) {
-            NSWorkspace.shared.open(authorizeURL)
-        }
+        let callback = try await signIn(at: authorizeURL)
+        let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems ?? []
         func value(_ name: String) -> String? {
             items.first { $0.name == name }?.value
         }
@@ -76,6 +76,26 @@ final class SpotifySession {
             "client_id": clientID,
             "code_verifier": verifier
         ])
+    }
+
+    private func signIn(at url: URL) async throws -> URL {
+        defer { signInSession = nil }
+        return try await withCheckedThrowingContinuation { continuation in
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: Self.callbackScheme) { callback, error in
+                if let callback {
+                    continuation.resume(returning: callback)
+                } else if (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin {
+                    continuation.resume(throwing: SpotifyError.auth("Spotify sign-in was cancelled"))
+                } else {
+                    continuation.resume(throwing: SpotifyError.auth(error?.localizedDescription ?? "Spotify sign-in failed"))
+                }
+            }
+            session.presentationContextProvider = anchor
+            signInSession = session
+            if !session.start() {
+                continuation.resume(throwing: SpotifyError.auth("Could not open the Spotify sign-in window"))
+            }
+        }
     }
 
     func accessToken() async throws -> String {
@@ -127,5 +147,13 @@ final class SpotifySession {
 
     private struct TokenFailure: Decodable {
         let error_description: String?
+    }
+}
+
+private final class WindowAnchor: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        MainActor.assumeIsolated {
+            NSApp.keyWindow ?? NSApp.mainWindow ?? NSApp.windows.first ?? ASPresentationAnchor()
+        }
     }
 }
