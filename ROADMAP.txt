@@ -485,9 +485,20 @@ and none has to be finished before moving on to other workstreams.
     Plex                   Official HTTP API (documented publicly since Sept 2025), token auth
                            via plex.tv, music library endpoints exist. Plex requires that
                            third-party apps do not violate its terms of service. NOT checked:
-                           whether a paid app may use it, plex.tv sign-in dependence, and
-                           any Plex Pass requirement for playback. Read the Plex developer
-                           terms before any work.
+                           whether a paid app may use it and plex.tv sign-in dependence.
+                           Read the Plex developer terms before any work.
+                           UPDATE 2026-10-02: reading the terms was ATTEMPTED and FAILED. The
+                           cloud session's network blocks plex.tv and developer.plex.tv, so
+                           neither the Terms of Service nor the developer docs could be read
+                           (a person must read them, or a session with access). What search
+                           results (news, not Plex's own pages) do say: since late 2025 Plex
+                           requires a Plex Pass or a Remote Watch Pass (about $2 a month or
+                           $20 a year) for REMOTE streaming from a personal server, also in
+                           third-party apps such as Infuse. Local-network playback is not
+                           reported as affected. So a Plex provider would depend on the user's
+                           Plex plan and on Plex's rules, which Plex changes at will.
+                           Decision: keep Plex as NOT STARTED. Do not code it until the terms
+                           are read and say a paid third-party app is allowed.
     Internet radio (Radio Browser)   Free community directory, no key, no signup, free for
                            commercial and non-commercial software, no guarantee of uptime.
                            Gives station stream URLs only: no library, no tracks of its own,
