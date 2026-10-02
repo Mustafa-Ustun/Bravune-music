@@ -1,5 +1,5 @@
 BRAVUNE DEVELOPMENT ROADMAP
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 This file describes the CURRENT actual state of the project. It replaces earlier plans.
 
 ==================================================================
@@ -10,7 +10,7 @@ Product:            Bravune, a native macOS music app (macOS only in V1)
 Build system:       Swift Package Manager (no Xcode project)
 Architecture:       Provider -> Provider Adapter -> UnifiedTrack -> UnifiedQueue -> Player
                     Mix Engine and AI Engine feed UnifiedQueue. AI never touches Player.
-Providers in code:  Local Music, Subsonic/Navidrome, Spotify (ON HOLD, see section 2), Apple Music
+Providers in code:  Local Music, Subsonic/Navidrome, Jellyfin (new, unverified), Spotify (ON HOLD, see section 2), Apple Music
 Automated tests:    219 tests, 0 failures, 0 warnings (app target and test target)
 Bundle identifier:  com.mustafaustun.bravune (chosen by the assistant, still needs the owner's approval)
 Signing team:       Free Personal Team, Team ID N9PBU9A64D (Apple Development certificate)
@@ -235,6 +235,39 @@ macOS product experience (real-world, Level 4 on the real macOS app, 2026-10-01)
           The slider is now rebuilt when the track or the stopped state changes.
         5 new tests (real AVAudioPlayer, mutation-checked). The slider fix is UI-only and was
         verified on screen, not by a unit test. Audible volume change was not verified by ear.
+  WRITTEN, NOT VERIFIED  Security-scoped bookmark for the Local Music folder (2026-10-02)
+        Written in a Linux cloud session with NO Swift toolchain: it was never compiled and no
+        test was run. Level 0 only. Must be built and tested on the Mac before it counts.
+        The chosen folder is now also stored as a security-scoped bookmark
+        (FolderBookmark, bravune.localMusic.folderBookmark). On launch the bookmark is resolved
+        and security scope is opened for the adapter's lifetime, a stale bookmark is refreshed,
+        and the old plain path key stays as fallback (existing tests still set only the path).
+        Disconnect closes the scope and removes both keys. The App Store entitlements file got
+        com.apple.security.files.bookmarks.app-scope, which persistent bookmarks need.
+        3 new tests in FolderBookmarkTests (round trip, garbage data, adapter restore and
+        disconnect). Not tested inside a real sandbox: that needs the paid program (section 4).
+  WRITTEN, NOT VERIFIED  Universal build option (2026-10-02)
+        Written in the Linux cloud session, no Swift toolchain, never run. Level 0 only.
+        Scripts/package.sh now accepts UNIVERSAL=1 (swift build --arch arm64 --arch x86_64)
+        and refuses to package unless lipo reports both architectures. Without UNIVERSAL the
+        script behaves as before. Needs a run on the Mac: UNIVERSAL=1 Scripts/package.sh, then
+        lipo -archs dist/Bravune.app/Contents/MacOS/Bravune. The x86_64 half was never launched
+        (no Intel Mac or Rosetta check), so only the build is covered, not behaviour.
+  WRITTEN, NOT VERIFIED  Jellyfin provider (2026-10-02)
+        Written in the Linux cloud session, no Swift toolchain: NEVER COMPILED, no test run,
+        no Jellyfin server seen. Level 0 only. It may contain compile errors.
+        Providers/Jellyfin/JellyfinClient.swift and JellyfinAdapter.swift, ProviderID.jellyfin,
+        registered in AppState. Login: POST /Users/AuthenticateByName, then the access token
+        (not the password) is kept in the Keychain; the password is never stored. Library:
+        GET /Items (Audio, recursive, pages of 500). Artwork from the track or its album.
+        Playback: /Audio/{id}/universal with api_key, mp3 transcoding as fallback.
+        401 on a library call shows "Connect again". Based on the public API as described in
+        search results and community clients; the official Jellyfin API reference was NOT read,
+        so field names and the universal-endpoint parameters need checking against a real server.
+        Playback class SubsonicPlayback was renamed HTTPStreamPlayback (Providers/Core) and is
+        shared by Subsonic and Jellyfin; behaviour unchanged, tests renamed accordingly.
+        10 new tests in JellyfinClientTests (URLProtocol stub, Level 3 at best once they run).
+        Needs on the Mac: swift build, swift test, then Level 4 against a real Jellyfin server.
 
 ==================================================================
 4. APPLE MUSIC AND THE APPLE DEVELOPER PROGRAM: WHAT IS ACTUALLY KNOWN
@@ -279,16 +312,57 @@ Unknown:
      for shuffle and repeat (repeat itself does not exist yet).
   8. RESOLVED 2026-10-01: seek slider, volume slider, queue drag-to-reorder and removing queue
      items were driven with real mouse input in the packaged app (see section 3).
-  9. The build is arm64 only.
- 10. Local Music stores its folder as a plain path, not a security-scoped bookmark.
-     A sandboxed (App Store) build loses folder access after relaunch.
- 11. The Free/Pro/Pro+ plan can be changed by the user in Settings.
+  9. CODE WRITTEN 2026-10-02, NOT RUN (see section 3): UNIVERSAL=1 Scripts/package.sh builds arm64 and
+     x86_64. The default build is still arm64 only.
+ 10. CODE WRITTEN 2026-10-02, NOT COMPILED OR TESTED (see section 3): the folder is also stored as
+     a security-scoped bookmark. Needs build, test run and a check on the Mac. Real sandbox
+     behaviour can only be seen in a sandboxed build.
+ 11. ON HOLD (owner decision 2026-10-02): the Free/Pro/Pro+ plan can be changed by the user in
+     Settings. The real fix is StoreKit (Workstream 5, needs the paid Apple Developer Program).
+     Restricting the picker to debug builds was offered and not chosen. Do not work on it
+     until Workstream 5 starts.
  12. RESOLVED 2026-10-02: the project is a git repository, branch main, pushed to the private
      GitHub repository Mustafa-Ustun/Bravune-music. The logged-in account's e-mail could not
      be read with the current token, so it was not confirmed that it is hfv856@gmail.com.
- 13. Audible playback has never been confirmed by ear on any provider.
- 14. Keychain writes (Claude key, Subsonic password, Spotify token) were not exercised
-     through the packaged UI. Only the automated Keychain round-trip test covers them.
+ 13. OPEN, OWNER ACTION (only a person can hear it): audible playback has never been confirmed
+     by ear on any provider. Listening check, about 10 minutes on the Mac, speakers or
+     headphones on, system volume audible:
+       a. Run Scripts/package.sh, open dist/Bravune.app, connect Local Music with a folder of
+          real songs. Press play: music must be heard, matching the title shown.
+       b. Move the volume slider (and Cmd+Up / Cmd+Down) from low to high: loudness must
+          follow. Drag it to zero: silence.
+       c. Pause, then resume: sound stops and continues from the same place. Seek forward:
+          the sound jumps with the position shown.
+       d. Let a track end: the next one starts audibly with no gap or overlap, and the notice
+          or error line matches what is heard.
+       e. Apple Music (songs in the library): repeat a, c, d with one song.
+       f. Menu bar play/pause and volume: the same audible effect as in the main window.
+     Report per provider what was heard. Until then audible output stays unconfirmed in
+     every validation note. Subsonic can only be checked once a server exists.
+ 14. OPEN, OWNER ACTION (needs the Mac): Keychain writes (Claude key, Subsonic password,
+     Jellyfin token, Spotify token) were not exercised through the packaged UI. Only the
+     automated Keychain round-trip test covers them. Checklist, about 15 minutes. Use a
+     throwaway Claude key value such as "test-key-123" (nothing calls the API when saving):
+     Keychain service is "com.bravune.app"; accounts: anthropic.apiKey (Claude key),
+     subsonic.password, jellyfin.token, spotify.refreshToken. Run Scripts/package.sh and open
+     dist/Bravune.app. To look at entries use Keychain Access (search "com.bravune.app") or:
+       security find-generic-password -s com.bravune.app -a <account>
+     (add -w to print the value; macOS may ask for permission, that is expected).
+       a. Settings: save the throwaway Claude key. Expect: the UI shows a key is set, and an
+          entry with that account exists in Keychain with the same value.
+       b. Quit with Cmd+Q, reopen. Expect: still shown as set (read back from Keychain).
+       c. Replace the key with another value. Expect: one entry only, new value (no duplicate).
+       d. Remove the key. Expect: the UI shows none and the entry is gone.
+       e. Subsonic: Providers > Connect with a Subsonic/Navidrome server (needs a server).
+          Expect entry subsonic.password; relaunch keeps the connection; Disconnect removes it.
+          Wrong password: expect the red connect error and NO entry left behind.
+       f. Jellyfin: same as e with a Jellyfin server; entry jellyfin.token holds a token, not
+          the password. Expect no entry for the password at any point.
+       g. Spotify is on hold: skip.
+       h. Rebuild with Scripts/package.sh (a new binary signature) and reopen. Report whether
+          macOS asks for Keychain access again: with the Personal Team certificate it may.
+     Steps a to d need no server. Steps e and f wait for a server, which is why this item stays
+     OPEN. Report what happened per step; nothing here counts as verified until then.
 
 ==================================================================
 6. WORKSTREAMS AND PRIORITIES
@@ -349,6 +423,9 @@ and none has to be finished before moving on to other workstreams.
     Preparation review of the existing code is done and reported separately.
     Goals: real PKCE sign-in, token exchange and refresh, Liked Songs paging, device
     selection, play, pause, seek, volume, track-change detection, end-of-track, errors.
+  Jellyfin real-world validation                       [NEEDS A SERVER AND LOGIN]
+    Same goals as Navidrome below, plus checking the transcoding fallback for formats
+    AVPlayer cannot open (ogg, opus). Code exists but was never compiled (section 3).
   Navidrome / Subsonic real-world validation           [NEEDS CREDENTIALS]
     Needs: a real server address and login.
     Goals: authentication, paging beyond 500 songs, empty-search behaviour, cover art,
@@ -393,6 +470,55 @@ and none has to be finished before moving on to other workstreams.
     Options: (1) skip YouTube Music, (2) open the YouTube Music web player or app and only
     control it from outside (no playback inside Bravune), (3) personal-use unofficial
     prototype that is never shipped or monetized.
+
+  Additional provider research, round 2 (2026-10-02, from web search result summaries only;
+  the official terms pages were NOT read in full, so verify each point before relying on it,
+  not legal advice). NOTHING below is implemented.
+    Jellyfin               Self-hosted, open source (GPL-2.0), same model as Navidrome: the
+                           user's own server and files, no third-party licence issue.
+                           Token auth through an Authorization header ("MediaBrowser" format),
+                           music stream at /Audio/{itemId}/universal. Finamp, Feishin and
+                           Jellify already use the API, so it is proven for third-party
+                           music clients. Needs a real server to validate (Level 4).
+                           Best new candidate: CLEAR, NO CREDENTIALS NEEDED TO START CODING
+                           (a mock server like the Subsonic one gives Level 3).
+    Plex                   Official HTTP API (documented publicly since Sept 2025), token auth
+                           via plex.tv, music library endpoints exist. Plex requires that
+                           third-party apps do not violate its terms of service. NOT checked:
+                           whether a paid app may use it and plex.tv sign-in dependence.
+                           Read the Plex developer terms before any work.
+                           UPDATE 2026-10-02: reading the terms was ATTEMPTED and FAILED. The
+                           cloud session's network blocks plex.tv and developer.plex.tv, so
+                           neither the Terms of Service nor the developer docs could be read
+                           (a person must read them, or a session with access). What search
+                           results (news, not Plex's own pages) do say: since late 2025 Plex
+                           requires a Plex Pass or a Remote Watch Pass (about $2 a month or
+                           $20 a year) for REMOTE streaming from a personal server, also in
+                           third-party apps such as Infuse. Local-network playback is not
+                           reported as affected. So a Plex provider would depend on the user's
+                           Plex plan and on Plex's rules, which Plex changes at will.
+                           Decision: keep Plex as NOT STARTED. Do not code it until the terms
+                           are read and say a paid third-party app is allowed.
+    Internet radio (Radio Browser)   Free community directory, no key, no signup, free for
+                           commercial and non-commercial software, no guarantee of uptime.
+                           Gives station stream URLs only: no library, no tracks of its own,
+                           and live streams have no duration or seek, so they do not fit
+                           UnifiedTrack/Player as they are. The individual stations'
+                           own terms were not checked. Would need a small design decision
+                           (live-stream track type) before any code.
+    Jamendo                Free Creative Commons music, API client_id from registration.
+                           Free only for NON-commercial apps (35,000 requests a month);
+                           any revenue, ads or affiliate income counts as commercial and
+                           needs a paid licence quote. Blocked for a paid Bravune. Usable
+                           only in a non-commercial build.
+    Bandcamp               No public API for players. Authenticated API is for labels and
+                           merchandise partners only. Public embed players and oEmbed exist
+                           but are web widgets, not native playback. Not usable.
+    Updated result: legally clear today are Local, Navidrome/Subsonic, Apple Music and
+    (new) Jellyfin. Plex and Internet radio need a closer look. Jamendo is non-commercial
+    only. Bandcamp is closed.
+    Jellyfin: first version written 2026-10-02, unverified (section 3). Real-server validation
+    (login, paging, artwork, streaming, Keychain, disconnect) is OPEN and needs a server.
 
 ------------------------------------------------------------------
 WORKSTREAM 4: PRODUCT REALIZATION AND MARKET VALIDATION

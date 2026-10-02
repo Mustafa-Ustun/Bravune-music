@@ -48,8 +48,21 @@ if [ -n "${SIGN_IDENTITY:-}" ]; then
     verify_identity "$SIGN_IDENTITY" "$TEAM_ID"
 fi
 
-swift build -c "$CONFIG" --package-path "$ROOT"
-BIN="$(swift build -c "$CONFIG" --package-path "$ROOT" --show-bin-path)/Bravune"
+# UNIVERSAL=1 builds arm64 and x86_64 into one binary. Default stays the host architecture.
+ARCH_ARGS=()
+if [ -n "${UNIVERSAL:-}" ]; then
+    ARCH_ARGS=(--arch arm64 --arch x86_64)
+fi
+
+swift build -c "$CONFIG" --package-path "$ROOT" ${ARCH_ARGS[@]+"${ARCH_ARGS[@]}"}
+BIN="$(swift build -c "$CONFIG" --package-path "$ROOT" ${ARCH_ARGS[@]+"${ARCH_ARGS[@]}"} --show-bin-path)/Bravune"
+if [ -n "${UNIVERSAL:-}" ]; then
+    ARCHS="$(lipo -archs "$BIN")"
+    case "$ARCHS" in
+        *arm64*x86_64*|*x86_64*arm64*) echo "universal binary: $ARCHS" ;;
+        *) echo "refused: expected arm64 and x86_64, got '$ARCHS'" >&2; exit 4 ;;
+    esac
+fi
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"

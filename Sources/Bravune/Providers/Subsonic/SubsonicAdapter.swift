@@ -76,7 +76,7 @@ final class SubsonicAdapter: ProviderAdapter {
     }
 
     func makePlayback() -> any TrackPlayback {
-        SubsonicPlayback { [weak self] trackId in
+        HTTPStreamPlayback { [weak self] trackId in
             guard let credentials = self?.credentials else { throw SubsonicError.notConnected }
             return try SubsonicClient(credentials: credentials).streamURL(id: trackId)
         }
