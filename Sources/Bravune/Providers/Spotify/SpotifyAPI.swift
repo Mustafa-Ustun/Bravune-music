@@ -171,12 +171,14 @@ final class SpotifyAPI {
             }
             let error: Body
         }
+        let fallback = status == 403 ? "Spotify Premium is required" : "Spotify request failed (\(status))"
         guard let failure = try? JSONDecoder().decode(Failure.self, from: data) else {
-            return "Spotify request failed (\(status))"
+            return fallback
         }
         if failure.error.reason == "PREMIUM_REQUIRED" {
             return "Spotify Premium is required for playback"
         }
-        return failure.error.message ?? "Spotify request failed (\(status))"
+        guard let message = failure.error.message, !message.isEmpty else { return fallback }
+        return message
     }
 }

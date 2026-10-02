@@ -30,4 +30,11 @@ final class SpotifyTests: XCTestCase {
         let json = #"{"error":{"status":403,"message":"Player command failed: Premium required","reason":"PREMIUM_REQUIRED"}}"#
         XCTAssertEqual(SpotifyAPI.failureMessage(data: Data(json.utf8), status: 403), "Spotify Premium is required for playback")
     }
+
+    func testBare403MeansPremiumRequired() {
+        XCTAssertEqual(SpotifyAPI.failureMessage(data: Data(), status: 403), "Spotify Premium is required")
+        XCTAssertEqual(SpotifyAPI.failureMessage(data: Data("Forbidden".utf8), status: 403), "Spotify Premium is required")
+        XCTAssertEqual(SpotifyAPI.failureMessage(data: Data(#"{"error":{"status":403}}"#.utf8), status: 403), "Spotify Premium is required")
+        XCTAssertEqual(SpotifyAPI.failureMessage(data: Data(), status: 500), "Spotify request failed (500)")
+    }
 }
