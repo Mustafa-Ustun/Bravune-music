@@ -431,6 +431,44 @@ and none has to be finished before moving on to other workstreams.
     control it from outside (no playback inside Bravune), (3) personal-use unofficial
     prototype that is never shipped or monetized.
 
+  Additional provider research, round 2 (2026-10-02, from web search result summaries only;
+  the official terms pages were NOT read in full, so verify each point before relying on it,
+  not legal advice). NOTHING below is implemented.
+    Jellyfin               Self-hosted, open source (GPL-2.0), same model as Navidrome: the
+                           user's own server and files, no third-party licence issue.
+                           Token auth through an Authorization header ("MediaBrowser" format),
+                           music stream at /Audio/{itemId}/universal. Finamp, Feishin and
+                           Jellify already use the API, so it is proven for third-party
+                           music clients. Needs a real server to validate (Level 4).
+                           Best new candidate: CLEAR, NO CREDENTIALS NEEDED TO START CODING
+                           (a mock server like the Subsonic one gives Level 3).
+    Plex                   Official HTTP API (documented publicly since Sept 2025), token auth
+                           via plex.tv, music library endpoints exist. Plex requires that
+                           third-party apps do not violate its terms of service. NOT checked:
+                           whether a paid app may use it, plex.tv sign-in dependence, and
+                           any Plex Pass requirement for playback. Read the Plex developer
+                           terms before any work.
+    Internet radio (Radio Browser)   Free community directory, no key, no signup, free for
+                           commercial and non-commercial software, no guarantee of uptime.
+                           Gives station stream URLs only: no library, no tracks of its own,
+                           and live streams have no duration or seek, so they do not fit
+                           UnifiedTrack/Player as they are. The individual stations'
+                           own terms were not checked. Would need a small design decision
+                           (live-stream track type) before any code.
+    Jamendo                Free Creative Commons music, API client_id from registration.
+                           Free only for NON-commercial apps (35,000 requests a month);
+                           any revenue, ads or affiliate income counts as commercial and
+                           needs a paid licence quote. Blocked for a paid Bravune. Usable
+                           only in a non-commercial build.
+    Bandcamp               No public API for players. Authenticated API is for labels and
+                           merchandise partners only. Public embed players and oEmbed exist
+                           but are web widgets, not native playback. Not usable.
+    Updated result: legally clear today are Local, Navidrome/Subsonic, Apple Music and
+    (new) Jellyfin. Plex and Internet radio need a closer look. Jamendo is non-commercial
+    only. Bandcamp is closed.
+    Suggested next provider: Jellyfin, because it needs no approval and reuses the
+    Subsonic structure. Owner decision pending.
+
 ------------------------------------------------------------------
 WORKSTREAM 4: PRODUCT REALIZATION AND MARKET VALIDATION
 ------------------------------------------------------------------
