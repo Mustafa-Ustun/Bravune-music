@@ -283,7 +283,8 @@ Unknown:
  10. Local Music stores its folder as a plain path, not a security-scoped bookmark.
      A sandboxed (App Store) build loses folder access after relaunch.
  11. The Free/Pro/Pro+ plan can be changed by the user in Settings.
- 12. The project is not under version control.
+ 12. PARTLY RESOLVED 2026-10-02: the project is a local git repository (branch main, 1 commit).
+     Not yet pushed: a private GitHub repository still has to be created and authorized by the owner.
  13. Audible playback has never been confirmed by ear on any provider.
  14. Keychain writes (Claude key, Subsonic password, Spotify token) were not exercised
      through the packaged UI. Only the automated Keychain round-trip test covers them.
