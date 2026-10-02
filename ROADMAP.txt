@@ -1,0 +1,490 @@
+BRAVUNE DEVELOPMENT ROADMAP
+Last updated: 2026-10-01
+This file describes the CURRENT actual state of the project. It replaces earlier plans.
+
+==================================================================
+1. PROJECT SNAPSHOT
+==================================================================
+
+Product:            Bravune, a native macOS music app (macOS only in V1)
+Build system:       Swift Package Manager (no Xcode project)
+Architecture:       Provider -> Provider Adapter -> UnifiedTrack -> UnifiedQueue -> Player
+                    Mix Engine and AI Engine feed UnifiedQueue. AI never touches Player.
+Providers in code:  Local Music, Subsonic/Navidrome, Spotify (ON HOLD, see section 2), Apple Music
+Automated tests:    219 tests, 0 failures, 0 warnings (app target and test target)
+Bundle identifier:  com.mustafaustun.bravune (chosen by the assistant, still needs the owner's approval)
+Signing team:       Free Personal Team, Team ID N9PBU9A64D (Apple Development certificate)
+Apple Developer:    FREE account only. The paid Apple Developer Program has NOT been purchased.
+                    A pending paid enrollment exists on the account and must not be completed by accident.
+Company teams:      Never used. Scripts/package.sh refuses them.
+Strategy:           Core product -> real-world usage/validation -> monetization validation -> AI / Pro+
+                    AI architecture is built and stays ready. Real Claude use is a LATER stage.
+
+Validation levels used in this file (never mix them up):
+  Level 1  Build          The code compiles.
+  Level 2  Unit test      One component works in isolation.
+  Level 3  Integration    Bravune components work together (fakes and mock servers count here).
+  Level 4  Real-world     The real external service or environment was used.
+
+==================================================================
+2. PRODUCT STRATEGY
+==================================================================
+
+Order of value:
+  Core product -> real-world usage and validation -> monetization validation -> AI / Pro+
+
+Why: real Claude API use creates recurring cost. That cost should only be taken on after
+there is evidence that people use Bravune and are willing to pay for it.
+
+AI architecture (ALREADY BUILT, stays in the code with its tests):
+  User Request -> AI Engine -> AIMixPlan / MixRequest -> Mix Engine -> UnifiedQueue -> Player
+
+Real Claude integration, AI features and AI monetization (LATER, Workstream 6):
+  - Not a blocker for any other work in this roadmap.
+  - No Anthropic API key is needed to finish the core product.
+  - Not required for the first usable or releasable version.
+  - No AI API cost is added to normal Bravune usage. Claude is only called when a
+    Pro+ user explicitly asks for an AI feature.
+  - AI is intended to be a Pro+ monetization layer.
+
+Provider work runs in PARALLEL. A provider blocked on credentials (for example Navidrome)
+never blocks the rest of Bravune development.
+
+------------------------------------------------------------------
+SPOTIFY: ON HOLD  (decision of the owner, 2026-10-01)
+------------------------------------------------------------------
+Spotify is ignored completely until Bravune has about 250,000 active users.
+No real Spotify validation, no Spotify credentials or dashboard setup, no preparation work,
+and no business plan that depends on Spotify.
+
+WHY (from Spotify's own current documents, effective 15 May 2025, reviewed 2026-09-30):
+  1. Controlling Spotify playback through the Web API counts as "Streaming" in Spotify's
+     Developer Terms. Spotify's Compliance Tips list the /me/player/play call as a streaming app.
+     An app with any streaming functionality is a "Streaming SDA" regardless of its other features.
+  2. Spotify's Developer Policy (section IV) does not permit commercial use of a Streaming SDA:
+     no selling it (also not as part of a bigger product), no in-app payments, no advertising.
+     Spotify's examples allow selling only apps WITHOUT streaming, such as a playlist manager.
+     A paid Bravune with Spotify playback control therefore cannot rely on Spotify.
+  3. Development Mode (changed February 2026) is meant for personal, non-commercial projects:
+     the app owner needs Spotify Premium, one Client ID per developer, at most 5 authorized users.
+  4. Extended quota (more than 5 users) is only offered to registered organizations with about
+     250,000 monthly active users. Individuals are not accepted.
+  5. Other Policy lines are unclear for Bravune and would need Spotify's clarification: no
+     product "integrated with streams or content from another service" (Bravune combines
+     providers), no mixing or overlapping of Spotify audio (Spotify's examples describe DJ-style
+     mixing, which Bravune does not do), and no feeding Spotify content to AI models.
+
+UNTIL WHEN:
+  Reopen only when ALL of these are true:
+    - Bravune has about 250,000 active users, AND
+    - there is a registered business entity that can apply for extended quota, AND
+    - Spotify has approved it.
+  Reaching 250,000 users alone does NOT make commercial Spotify use allowed. The ban on
+  commercial use of streaming apps stays in force. Commercial use would still need a written
+  "Separate Agreement" signed by Spotify, and Spotify has published no application path for it.
+  Spotify can change its terms at any time, so re-read them before reopening.
+
+WHAT STAYS:
+  - The existing Spotify code and its mock tests stay in the project untouched. Spotify lives
+    in its own provider module and can be excluded from any build without changing
+    UnifiedQueue, Player or Mix Engine.
+  - Paid builds must not contain Spotify functionality. If Spotify is ever used it belongs in a
+    separate, non-commercial build.
+  - Real-world provider revenue is planned around Local Music, Subsonic/Navidrome and, after its
+    terms are checked, Apple Music.
+
+Sources: developer.spotify.com/policy, /terms, /compliance-tips,
+         /documentation/web-api/concepts/quota-modes,
+         /blog/2026-02-06-update-on-developer-access-and-platform-security
+
+==================================================================
+3. COMPLETED
+==================================================================
+
+Core
+  DONE  Core architecture (Provider, Adapter, UnifiedTrack, UnifiedQueue, Player)
+  DONE  UnifiedQueue (add, remove, move, next, previous, shuffle, clear, select)
+  DONE  Player (play, pause, next, previous, seek, volume, state, position)
+        Unplayable local tracks are skipped in the direction of travel.
+        Provider-level failures (for example no Spotify device) do not skip.
+  DONE  Mix Engine (providers, track count, per-provider counts, randomize,
+        duplicate avoidance, artist repetition rule, saved mixes)
+  DONE  AI Engine ARCHITECTURE (natural language -> AIMixPlan -> MixRequest -> Mix Engine)
+        Built early so Bravune is AI-ready. Level 3 only. The real Claude API has never been
+        called, and real Claude integration is a LATER stage (section 6, Workstream 6).
+        The AI code and its tests stay in the project. Nothing here needs an API key.
+  DONE  Subscription and plan structure (Free, Pro, Pro+ limits)
+        The plan is a local setting. It is NOT a real purchase system.
+
+Testing
+  DONE  Automated test infrastructure
+        Generated audio fixtures, tagged MP3/M4A/FLAC fixtures, mock Subsonic server,
+        mock Spotify server, fake Claude transport, fake providers, seeded random generator.
+  DONE  Spotify mock and integration validation (Level 3 against a local mock server)
+        This is NOT real Spotify validation.
+  DONE  Player failure path tests, AppState integration tests, AI chain tests, Keychain test
+  DONE  219 tests passing, 0 failures, 0 warnings
+
+Local Music (real-world, Level 4 on the real macOS app)
+  DONE  Real macOS app validation with tagged MP3, M4A, FLAC, untagged WAV and a corrupt file
+        Metadata, embedded artwork, playback, auto-advance, queue end, skipping the corrupt file.
+        Audible output was never confirmed by ear.
+
+Packaging and signing
+  DONE  App packaging and ad-hoc signing (Scripts/package.sh, Packaging/Info.plist)
+  DONE  Free Personal Team signing with the Apple Development certificate
+        Verified: TeamIdentifier N9PBU9A64D, codesign verify passes, the app launches.
+        Gatekeeper rejects it because it is not notarized. That is expected for this account.
+
+Apple Music (real-world, Level 4, free Personal Team)
+  DONE  Apple Music authorization (MusicKit returns authorized)
+  DONE  Apple Music library reading (songs appear in the Bravune Library)
+  DONE  Apple Music library playback (ApplicationMusicPlayer through Bravune's provider and Player)
+  DONE  Apple Music pause, resume and seek
+  DONE  Apple Music end-of-track detection
+        MusicKit reports "paused" at position 0.00 when a track ends. Bravune now treats that
+        as the end only if playback was seen running and the user had not paused.
+  DONE  Apple Music real-world queue advancement (next song starts, queue end stops, replay works)
+
+macOS product experience (real-world, Level 4 on the real macOS app, 2026-10-01)
+  DONE  macOS Menu Bar Controller, initial version
+        Menu bar item with artwork, track title, artist, previous, play/pause, next, volume,
+        Open Bravune and Quit Bravune. It uses the existing Player and UnifiedQueue only.
+        Verified: controls act on the same Player as the main window, Open Bravune reopens a
+        closed window without duplicates, Quit Bravune ends the app.
+        Behaviour changes: closing the main window no longer quits the app (the menu bar item
+        keeps working, quit with Quit Bravune or Cmd+Q), and the main window is a single window,
+        so File > New Bravune Window no longer exists.
+  DONE  Keyboard shortcuts and a Playback menu
+        Space play/pause, Cmd+Right next, Cmd+Left previous, Cmd+Up and Cmd+Down volume,
+        Delete removes the selected rows in the Queue. Verified with real key presses.
+        Space is ignored while typing in a text field, during a modal alert and for held keys.
+        Space is handled by a small key monitor because a plain Space menu shortcut did not fire.
+  DONE  Visible connection errors (2026-10-01)
+        A failed Connect now shows its error in red under that provider in the Providers list.
+        The error is kept per provider, stays until the next attempt, Cancel or Disconnect,
+        and no longer disappears when the library refreshes. The row shows a progress indicator
+        while connecting and a second Connect is ignored while one is running.
+        Verified in the real app with a Subsonic address nothing listens on: the list showed
+        "Could not connect to the server." and Cancel on the next attempt cleared it.
+        Also fixed in the same pass: the Subsonic connect dialog showed its three text fields
+        almost zero width, so the server address could not be seen. They now have full width.
+  DONE  Skipped-track notice (2026-10-01)
+        When the Player skips unplayable tracks it now shows an orange line in the player bar
+        and the menu bar window: "Skipped "title" (can't be played)" for one track, or
+        "Skipped N tracks that can't be played" for several in a row. It is shown once the next
+        track plays, disappears after 6 seconds, and is cleared by any user action or Stop.
+        When nothing is left to play the normal red error is shown instead of a notice.
+        Verified in the packaged app with a corrupt mp3 between tagged files: the notice appeared
+        in orange under the next track and was gone after the timeout. 11 new unit tests,
+        mutation-checked. The menu bar window uses the same code path but was not separately
+        checked on screen.
+  DONE  Queue UX pass (2026-10-01)
+        Deleting the track that is playing now continues with the track that follows it (it
+        used to stop and lose the position). Deleting the last track, or a paused track, stops
+        as before. New "Play Next" in the Library context menu inserts after the current track.
+        Fixed stale row selection in the Queue after a delete, reorder, shuffle or clear.
+        Verified in the packaged app: Delete on the playing row started the next song.
+        Play Next was only unit-tested (UnifiedQueue.insertNext, 6 tests); the context menu
+        itself was not driven in the real UI. 10 new tests, mutation-checked.
+  DONE  Apple Music connection summary (2026-10-01)
+        The Providers row now confirms the connection from MusicKit data: authorization,
+        subscription state (MusicSubscription.current, works on the free Personal Team) and
+        the number of songs in the library. Verified in the packaged app: "Authorized - no
+        active subscription - 0 songs in library". The Music library was empty at the time,
+        so a non-zero count was not seen in this run. 4 new tests for the text only.
+  DONE  Other macOS UX items (2026-10-02)
+        - Go menu with Cmd+1..5 for Library, Queue, Mix, Providers, Settings. The selected
+          section now lives in AppState. Verified with real key presses in the packaged app.
+        - Return on a selected Library or Queue row plays it. This already worked (checked in
+          the real UI), it was only missing from the notes.
+        - Subsonic: a stream the player cannot open (damaged file, HTTP error body) now raises
+          the same "Couldn't play" error as local files, so the Player skips it and shows the
+          skip notice. Network and stream-URL failures stay provider errors and do not skip.
+          Covered by unit tests with a real non-audio file and a real wav; NOT tried against a
+          real Navidrome server.
+        8 new tests (shortcut keys, section state, Subsonic unplayable), mutation-checked.
+  DONE  Corrupt files in the Library (2026-10-02)
+        Local files AVFoundation reports as not playable are still listed, but dimmed, with an
+        orange "Can't be played - damaged or unsupported file" line and no duration, and they
+        are never picked by Mix. They are marked through UnifiedTrack.metadata["unplayable"],
+        so no model change. Playing one still goes through the existing skip logic.
+        Verified in the packaged app with the corrupt fixture next to two good files.
+        3 new tests (marking matches what the real local player can open), mutation-checked;
+        the load-failure fallback in the marking is unreachable in practice (isPlayable loads
+        fine for the corrupt file), so that line has no test.
+  DONE  Artwork cache cleanup (2026-10-02)
+        The local artwork cache (~/Library/Caches/Bravune/Artwork) is pruned after every library
+        scan (files no track uses are deleted) and emptied when the Local Music folder is
+        removed. 5 new tests with the real fixtures, mutation-checked. Not looked at in the
+        real UI; the behaviour is file-system only.
+        Apple Music artwork (known issue 5) is NOT fixed: MusicKit gives non-web artwork
+        addresses that only its own ArtworkImage view can draw, and the Music library was
+        empty, so there was nothing to test against.
+  DONE  Real-UI validation of seek, volume and drag reorder (2026-10-01)
+        Driven with real mouse input in the packaged app (background clicks cannot move sliders,
+        so the full-screen tools were used). Click and drag on the seek slider move playback
+        (0:29 then 0:32 afterwards), seeking while paused stays paused and resumes from there,
+        the volume slider and Cmd+Up/Down move together, and dragging a Queue row reorders it,
+        the current-track highlight follows it and Next continues from the new position.
+        Two bugs found and fixed:
+        - Seeking to the very end of a track made AVAudioPlayer wrap to 0:00 and keep playing
+          with no finish callback, so the last track restarted instead of stopping. Seeking at
+          or past the end now ends the track like a normal finish (advance or stop).
+        - After that stop the seek thumb stayed at the far right while the time said 0:00.
+          The slider is now rebuilt when the track or the stopped state changes.
+        5 new tests (real AVAudioPlayer, mutation-checked). The slider fix is UI-only and was
+        verified on screen, not by a unit test. Audible volume change was not verified by ear.
+
+==================================================================
+4. APPLE MUSIC AND THE APPLE DEVELOPER PROGRAM: WHAT IS ACTUALLY KNOWN
+==================================================================
+
+Works with the FREE Personal Team (proven):
+  - MusicKit authorization
+  - Reading the user's Apple Music library
+  - Playing library songs, including pause, resume, seek and end-of-track
+  Library playback does NOT require the paid program. This was demonstrated.
+
+Not available with the free Personal Team (observed):
+  - Apple Music catalog requests. MusicCatalogSearchRequest fails with
+    MusicTokenRequestError code 5, ".developerTokenRequestFailed", "Failed to request developer token".
+  - Xcode offers no MusicKit capability for any team type.
+  - Apple documents enabling the MusicKit App Service on an App ID in
+    Certificates, Identifiers & Profiles, which comes with the paid program.
+  It is NOT proven that the paid program would fix the developer token error.
+
+Requires the paid Apple Developer Program (documented by Apple):
+  - Mac App Store distribution and App Store Connect
+  - Mac software notarization (Developer ID distribution)
+  - Certificates, Identifiers & Profiles
+
+Unknown:
+  - Streamed Apple Music catalog playback (needs an Apple Music subscription; this account has none)
+  - Behaviour of songs synced from an Apple Music subscription and iCloud Music Library
+
+==================================================================
+5. KNOWN ISSUES
+==================================================================
+
+  1. RESOLVED 2026-10-01: failed provider connects used to be silent (the error was cleared
+     by the library refresh). Connection errors are now shown per provider (see section 3).
+  2. RESOLVED 2026-10-01: skipped unplayable tracks now show a notice (see section 3).
+  3. RESOLVED 2026-10-02: corrupt files are marked unplayable in the Library and skipped by Mix.
+  4. RESOLVED 2026-10-02: the local artwork cache is now pruned on scan and on folder removal.
+  5. Apple Music artwork is not shown (MusicKit gives non-web artwork addresses).
+  6. RESOLVED 2026-10-02 (unit level): Subsonic unplayable tracks are skipped like local ones.
+  7. RESOLVED 2026-10-01: keyboard shortcuts and a Playback menu now exist (see section 3).
+     Sidebar navigation (Cmd+1..5) and Return to play a row exist. Still missing: shortcuts
+     for shuffle and repeat (repeat itself does not exist yet).
+  8. RESOLVED 2026-10-01: seek slider, volume slider, queue drag-to-reorder and removing queue
+     items were driven with real mouse input in the packaged app (see section 3).
+  9. The build is arm64 only.
+ 10. Local Music stores its folder as a plain path, not a security-scoped bookmark.
+     A sandboxed (App Store) build loses folder access after relaunch.
+ 11. The Free/Pro/Pro+ plan can be changed by the user in Settings.
+ 12. The project is not under version control.
+ 13. Audible playback has never been confirmed by ear on any provider.
+ 14. Keychain writes (Claude key, Subsonic password, Spotify token) were not exercised
+     through the packaged UI. Only the automated Keychain round-trip test covers them.
+
+==================================================================
+6. WORKSTREAMS AND PRIORITIES
+==================================================================
+
+The work is organized in parallel workstreams. Nothing in one workstream waits for another
+unless a dependency is written next to the item. Items marked [NEEDS CREDENTIALS] cannot
+start until the owner provides them, and they never block work marked [NO CREDENTIALS].
+
+------------------------------------------------------------------
+WORKSTREAM 1: CORE MUSIC PRODUCT
+------------------------------------------------------------------
+Architecture already built: UnifiedQueue, Player, Mix Engine, provider adapters.
+  DONE         Local Music real-world validation
+  DONE         Apple Music library authorization, reading, playback, end-of-track, queue advancement
+  DONE         Spotify and Subsonic mock integration (Level 3)
+  OPEN         Provider reliability (known issues 3 and 6 in section 5)
+  OPEN         Real-world provider validation (Level 4):
+               Navidrome/Subsonic, see Workstream 3 (Spotify is on hold, see section 2)
+  OPEN         Mix Engine and queue behaviour checks in the real UI (Workstream 2)
+  OPEN         Final end-to-end validation of the core product in the packaged app:
+               every provider that has been validated, Mix, saved mixes, Settings, and the open
+               items in section 5 that affect correctness. AI Mix is excluded until Workstream 6.
+
+------------------------------------------------------------------
+WORKSTREAM 2: macOS PRODUCT EXPERIENCE                 [NO CREDENTIALS]  <- Workstream 2 finished except Apple Music artwork (item 8 part 2)
+------------------------------------------------------------------
+Everything here can be built and verified on this Mac without any external account.
+  1. DONE (initial version, section 3): macOS Menu Bar Controller
+       Quick playback controls without opening the main window.
+       Initial: play/pause, previous, next, track title, artist, artwork, volume,
+       Open Bravune, Quit Bravune.
+       Later and still OPEN: seek, queue preview, shuffle, repeat, like/favorite, provider
+       indicator, an icon that changes while playing.
+       Architecture rule: Menu Bar Controller -> Player -> UnifiedQueue.
+       No second player, queue, playback manager or duplicated playback logic.
+  2. DONE (section 3): Keyboard shortcuts (Space, Cmd+Right, Cmd+Left, Cmd+Up, Cmd+Down, Delete)
+  3. DONE (section 3): Playback menu in the menu bar
+  4. DONE (section 3): Connect error UX
+  5. DONE (section 3): Skipped-track notice
+  6. DONE (section 3): Queue UX pass (remove-while-playing, Play Next, stale selection)
+  7. DONE (section 3): Seek, volume, drag and reorder verification in the real UI
+  8. PARTLY DONE (section 3): artwork cache cleanup. Apple Music artwork (issue 5) still open
+  9. DONE (section 3): Corrupt-file handling in the Library
+  10. DONE (section 3): Other macOS UX items. Left over: issues 9 to 14 in section 5
+
+------------------------------------------------------------------
+WORKSTREAM 3: PROVIDER EXPANSION                        [independent per provider]
+------------------------------------------------------------------
+Each provider proceeds on its own. No provider has to be finished before another starts,
+and none has to be finished before moving on to other workstreams.
+  Spotify real-world validation                        [ON HOLD, see section 2]
+    Do not prepare, test or plan around this until section 2 says it is reopened.
+    The notes below are kept only for the day it is reopened.
+    Needs: a Spotify developer app Client ID with redirect URI
+    http://127.0.0.1:8888/callback registered, the owner's account added to the app's
+    users, Spotify Premium, and the Spotify desktop app open and signed in on this Mac.
+    Preparation review of the existing code is done and reported separately.
+    Goals: real PKCE sign-in, token exchange and refresh, Liked Songs paging, device
+    selection, play, pause, seek, volume, track-change detection, end-of-track, errors.
+  Navidrome / Subsonic real-world validation           [NEEDS CREDENTIALS]
+    Needs: a real server address and login.
+    Goals: authentication, paging beyond 500 songs, empty-search behaviour, cover art,
+    streaming, Keychain persistence, connect and disconnect flow.
+  Additional provider research                         [NO CREDENTIALS]
+    For each provider first establish API availability, authentication, library access,
+    playback method, macOS compatibility, commercial feasibility, and whether playback
+    happens inside Bravune, by remote-controlling another app, or is not possible.
+  Candidate providers, each researched and implemented independently:
+    Deezer, TIDAL, SoundCloud, YouTube Music, Amazon Music, Qobuz
+  Do not add a provider just to raise the provider count.
+  YouTube Music research (2026-10-01): NOT IMPLEMENTED, policy-blocked, owner decision pending.
+    - There is no official YouTube Music API. The official YouTube Data API v3 gives no
+      audio stream and no YouTube Music library access.
+    - The YouTube API Services Developer Policies (checked 2026-10-01) prohibit separating
+      audio from video, background playback, downloading or caching content, and scraping.
+      Only the official embedded player is allowed, which means no native audio-only player.
+    - Unofficial routes (ytmusicapi style private endpoints, yt-dlp stream extraction) work
+      technically but break those terms, need the user's Google cookies or session, and are
+      a commercial and account-ban risk. Same class of problem as the Spotify finding.
+    - A real connection test would need the owner's Google sign-in data, which must not be
+      shared with Claude.
+  Provider legal-feasibility research (2026-10-01, from public documentation and web search,
+  not legal advice; verify each point on the official page before relying on it):
+    Apple Music (MusicKit)   Official, in-app playback. Free account: library playback of
+                             owned songs works; catalog streaming needs the paid program.
+    Local files, Navidrome / Subsonic   No licence issue (user's own files and server).
+    Deezer                   Closed: new API access for individuals is disabled, the playback
+                             SDKs are deprecated, only 30 second previews. Not usable now.
+    TIDAL                    Official developer platform. Playback only through the official
+                             TIDAL Player SDK for Web, iOS and Android. No native macOS
+                             player SDK, so in-app playback on macOS is not available yet.
+    SoundCloud               Official API with app registration, but its terms forbid any
+                             playback experience that aggregates SoundCloud with other
+                             services. That conflicts with Bravune's unified queue.
+    Qobuz                    Partner-only API: app id and secret must be requested from
+                             Qobuz, approval not guaranteed, needs a paid subscription.
+    Amazon Music             Playback Web API is in closed beta, approved developers only.
+    Spotify                  On hold (section 2). YouTube Music: see below.
+    Result: legally clear today are Local, Navidrome/Subsonic and Apple Music. Every
+    other candidate needs a partner application or is closed.
+    Options: (1) skip YouTube Music, (2) open the YouTube Music web player or app and only
+    control it from outside (no playback inside Bravune), (3) personal-use unofficial
+    prototype that is never shipped or monetized.
+
+------------------------------------------------------------------
+WORKSTREAM 4: PRODUCT REALIZATION AND MARKET VALIDATION
+------------------------------------------------------------------
+Validate the NON-AI product before AI becomes a major cost. Questions to answer:
+  - Is Bravune useful as a unified music player?
+  - Are users connecting more than one provider?
+  - Are users using Mix?
+  - Are users using the menu bar experience?
+  - Which features are actually used?
+  - Is there enough user value to justify a paid tier?
+  - Can Bravune attract initial real users without AI?
+Depends on: a usable, releasable core product (Workstreams 1 to 3). It needs a way to reach
+real users and to learn what they use. That mechanism is not designed yet and is a decision
+for the owner.
+
+------------------------------------------------------------------
+WORKSTREAM 5: MONETIZATION
+------------------------------------------------------------------
+Starts after the core product has real-world validation (Workstream 4).
+  - Finalize the Free / Pro / Pro+ boundaries
+  - Implement StoreKit and the paid subscription (needs the paid Apple Developer Program)
+  - Usage limits where appropriate
+  - Validate willingness to pay
+  - Distribution preparation when actually ready (needs the paid Apple Developer Program):
+    certificates and provisioning, App ID registration (bundle identifier must be approved
+    first), sandbox build with Packaging/Bravune-AppStore.entitlements, the Local Music
+    folder bookmark fix, app icon, store listing, privacy details, universal
+    (arm64 and x86_64) build, Developer ID signing and notarization for direct distribution.
+AI belongs primarily to Pro+.
+
+------------------------------------------------------------------
+WORKSTREAM 6: AI / CLAUDE                               [LATER, never a blocker]
+------------------------------------------------------------------
+Only after the core product and the monetization strategy have enough validation.
+  - Real Claude API integration (needs an Anthropic API key; the request shape has never
+    been tested against the real API)
+  - AI Mix and natural-language music requests
+  - AI Smart Queue
+  - More advanced AI personalization
+  - Measure AI usage and API cost
+  - Make sure Pro+ pricing can support the API costs
+Real Claude validation covers: confirming the request shape (fallbacks, structured
+output, effort), example requests, error cases (invalid key, 429, refusal, timeout), and
+retry and backoff. Unsupported requirements (genre, mood, language, era) must still be
+reported, never fabricated.
+
+------------------------------------------------------------------
+RECOMMENDED IMMEDIATE PRIORITY (run in parallel, not one after another)
+------------------------------------------------------------------
+  1. DONE: macOS Menu Bar Controller (initial version)
+  2. DONE: Keyboard shortcuts and a Playback menu
+  3. DONE except Apple Music artwork (needs a library with songs): connect errors, skipped-track
+     notice, queue UX, seek/volume/reorder checks, artwork cache, corrupt files, shortcuts
+  3b. Open known issues 9 to 14 in section 5 (arm64 only, security-scoped bookmark, plan can be
+     changed by the user, no version control, no audible check, Keychain not exercised)  <- NEXT
+     Owner decision needed on the order; none of them needs credentials except 14.
+  4. (on hold) Spotify real-world validation: not scheduled, see section 2
+  5. Navidrome real-world validation, when credentials are available
+  6. Additional provider research and implementation
+  7. Core product real-world validation (Workstream 4)
+  8. Monetization and StoreKit (Workstream 5)
+  9. Real Claude and Pro+ AI (Workstream 6)
+Waiting for credentials is never a reason to stop: items 3 and 6 need none.
+Item 4 is not waiting for credentials. It is on hold by decision (section 2).
+
+==================================================================
+7. RULES THAT STILL APPLY
+==================================================================
+
+  - UnifiedQueue stays the central queue. Providers never connect directly to Player.
+  - AI never controls Player and never bypasses Mix Engine.
+  - Provider-specific code stays inside its provider module.
+  - Do not add architecture layers without a concrete requirement.
+  - Do not describe compilation, unit tests or mocks as real-world validation.
+  - Do not purchase or enroll in the paid Apple Developer Program without an explicit decision.
+  - Never use company Apple Developer teams or certificates for Bravune.
+  - Do not fabricate track metadata (genre, mood, language, era, popularity).
+  - Work one phase at a time and report what was actually validated.
+  - Do not make Claude integration or an Anthropic API key a prerequisite for anything else.
+  - Core Bravune usage must never call the Claude API. Only an explicit Pro+ AI action may.
+  - Do not remove the AI code or its tests. AI stays architecturally ready.
+  - A provider blocked on credentials must not block work on other providers or workstreams.
+  - Spotify is on hold (section 2). Do not work on it, test it or plan revenue around it.
+  - The menu bar controller must use the existing Player and UnifiedQueue only.
+
+==================================================================
+8. PENDING OWNER DECISIONS
+==================================================================
+
+  - Approve or change the bundle identifier com.mustafaustun.bravune before any registration.
+  - Provide Navidrome credentials whenever ready. They do not block other work.
+  - Spotify credentials are NOT needed. Spotify is on hold (section 2).
+  - Claude API key: NOT needed now. Only needed when Workstream 6 starts.
+  - Decide how initial real users will be reached and how usage will be measured (Workstream 4).
+  - Decide whether and when to join the paid Apple Developer Program.
+  - Decide the final Free plan limits (currently 3 mixes per day and 25 tracks per mix).
