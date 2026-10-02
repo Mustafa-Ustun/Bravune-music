@@ -53,10 +53,6 @@ final class LocalMusicAdapter: ProviderAdapter {
         self.init(folderURL: stored.map { URL(fileURLWithPath: $0, isDirectory: true) })
     }
 
-    deinit {
-        scopedURL?.stopAccessingSecurityScopedResource()
-    }
-
     func connect() async throws {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false

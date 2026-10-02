@@ -242,7 +242,10 @@ macOS product experience (real-world, Level 4 on the real macOS app, 2026-10-01)
         (FolderBookmark, bravune.localMusic.folderBookmark). On launch the bookmark is resolved
         and security scope is opened for the adapter's lifetime, a stale bookmark is refreshed,
         and the old plain path key stays as fallback (existing tests still set only the path).
-        Disconnect closes the scope and removes both keys. The App Store entitlements file got
+        Disconnect closes the scope and removes both keys.
+        Self-review 2026-10-02 (read-through only, no compiler): removed a deinit that touched the
+        main-actor scope property, a possible compile error or warning. The scope now stays open
+        for the adapter's lifetime unless Disconnect or a new folder choice closes it. The App Store entitlements file got
         com.apple.security.files.bookmarks.app-scope, which persistent bookmarks need.
         3 new tests in FolderBookmarkTests (round trip, garbage data, adapter restore and
         disconnect). Not tested inside a real sandbox: that needs the paid program (section 4).
