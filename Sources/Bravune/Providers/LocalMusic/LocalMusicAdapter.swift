@@ -8,6 +8,7 @@ import Observation
 @Observable
 final class LocalMusicAdapter: ProviderAdapter {
     nonisolated static let folderDefaultsKey = "bravune.localMusic.folder"
+    nonisolated static let bookmarkDefaultsKey = "bravune.localMusic.folderBookmark"
     nonisolated static let supportedExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aiff", "aif", "flac", "caf"]
 
     let id = ProviderID.localMusic
@@ -15,6 +16,7 @@ final class LocalMusicAdapter: ProviderAdapter {
 
     private(set) var folderURL: URL?
     private let artworkDirectory: URL
+    private var scopedURL: URL?
 
     var isConnected: Bool {
         folderURL != nil
@@ -36,8 +38,23 @@ final class LocalMusicAdapter: ProviderAdapter {
     }
 
     convenience init() {
-        let stored = UserDefaults.standard.string(forKey: Self.folderDefaultsKey)
+        let defaults = UserDefaults.standard
+        if let data = defaults.data(forKey: Self.bookmarkDefaultsKey), let resolved = FolderBookmark.resolve(data) {
+            self.init(folderURL: resolved.url)
+            if resolved.url.startAccessingSecurityScopedResource() {
+                scopedURL = resolved.url
+            }
+            if resolved.isStale, let fresh = FolderBookmark.make(for: resolved.url) {
+                defaults.set(fresh, forKey: Self.bookmarkDefaultsKey)
+            }
+            return
+        }
+        let stored = defaults.string(forKey: Self.folderDefaultsKey)
         self.init(folderURL: stored.map { URL(fileURLWithPath: $0, isDirectory: true) })
+    }
+
+    deinit {
+        scopedURL?.stopAccessingSecurityScopedResource()
     }
 
     func connect() async throws {
@@ -48,13 +65,26 @@ final class LocalMusicAdapter: ProviderAdapter {
         panel.prompt = "Choose"
         panel.message = "Choose the folder that contains your music"
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        scopedURL?.stopAccessingSecurityScopedResource()
+        scopedURL = nil
+        if url.startAccessingSecurityScopedResource() {
+            scopedURL = url
+        }
         folderURL = url
         UserDefaults.standard.set(url.path, forKey: Self.folderDefaultsKey)
+        if let data = FolderBookmark.make(for: url) {
+            UserDefaults.standard.set(data, forKey: Self.bookmarkDefaultsKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: Self.bookmarkDefaultsKey)
+        }
     }
 
     func disconnect() {
+        scopedURL?.stopAccessingSecurityScopedResource()
+        scopedURL = nil
         folderURL = nil
         UserDefaults.standard.removeObject(forKey: Self.folderDefaultsKey)
+        UserDefaults.standard.removeObject(forKey: Self.bookmarkDefaultsKey)
         let directory = artworkDirectory
         Task.detached(priority: .utility) {
             Self.pruneArtwork(in: directory, keeping: [])

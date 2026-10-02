@@ -1,5 +1,5 @@
 BRAVUNE DEVELOPMENT ROADMAP
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 This file describes the CURRENT actual state of the project. It replaces earlier plans.
 
 ==================================================================
@@ -235,6 +235,17 @@ macOS product experience (real-world, Level 4 on the real macOS app, 2026-10-01)
           The slider is now rebuilt when the track or the stopped state changes.
         5 new tests (real AVAudioPlayer, mutation-checked). The slider fix is UI-only and was
         verified on screen, not by a unit test. Audible volume change was not verified by ear.
+  WRITTEN, NOT VERIFIED  Security-scoped bookmark for the Local Music folder (2026-10-02)
+        Written in a Linux cloud session with NO Swift toolchain: it was never compiled and no
+        test was run. Level 0 only. Must be built and tested on the Mac before it counts.
+        The chosen folder is now also stored as a security-scoped bookmark
+        (FolderBookmark, bravune.localMusic.folderBookmark). On launch the bookmark is resolved
+        and security scope is opened for the adapter's lifetime, a stale bookmark is refreshed,
+        and the old plain path key stays as fallback (existing tests still set only the path).
+        Disconnect closes the scope and removes both keys. The App Store entitlements file got
+        com.apple.security.files.bookmarks.app-scope, which persistent bookmarks need.
+        3 new tests in FolderBookmarkTests (round trip, garbage data, adapter restore and
+        disconnect). Not tested inside a real sandbox: that needs the paid program (section 4).
 
 ==================================================================
 4. APPLE MUSIC AND THE APPLE DEVELOPER PROGRAM: WHAT IS ACTUALLY KNOWN
@@ -280,8 +291,9 @@ Unknown:
   8. RESOLVED 2026-10-01: seek slider, volume slider, queue drag-to-reorder and removing queue
      items were driven with real mouse input in the packaged app (see section 3).
   9. The build is arm64 only.
- 10. Local Music stores its folder as a plain path, not a security-scoped bookmark.
-     A sandboxed (App Store) build loses folder access after relaunch.
+ 10. CODE WRITTEN 2026-10-02, NOT COMPILED OR TESTED (see section 3): the folder is also stored as
+     a security-scoped bookmark. Needs build, test run and a check on the Mac. Real sandbox
+     behaviour can only be seen in a sandboxed build.
  11. The Free/Pro/Pro+ plan can be changed by the user in Settings.
  12. RESOLVED 2026-10-02: the project is a git repository, branch main, pushed to the private
      GitHub repository Mustafa-Ustun/Bravune-music. The logged-in account's e-mail could not
