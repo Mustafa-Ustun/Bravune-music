@@ -388,6 +388,13 @@ smaller or self-hosted ones. Order, with what is true for each today:
                    today. The 2026-10-01 "on hold" decision in section 2 is therefore now
                    "priority, but only as a non-commercial build"; it is NOT a revenue plan.
                    Owner must confirm that reading (section 8).
+                   2026-10-02: the owner registered a Spotify app ("Bravune dev") with redirect
+                   http://127.0.0.1:8888/callback and Web Playback SDK selected; the Web API
+                   option could NOT be selected on the owner's account (reason not known yet).
+                   Its Client ID is now built into SpotifyAdapter, so Connect goes straight to
+                   the Spotify login page in the browser (no Client ID dialog). Not compiled,
+                   not tried. Whether library and playback calls work without the Web API
+                   option, and without Premium, is unknown until the first real login.
   3. Deezer        NOT startable: new API access for individuals is disabled, the playback
                    SDKs are deprecated and only 30 second previews exist. Re-check the Deezer
                    developer pages on a schedule and start the day access reopens.

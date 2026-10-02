@@ -7,6 +7,9 @@ import Observation
 final class SpotifyAdapter: ProviderAdapter {
     private static let clientKey = "bravune.spotify.clientID"
     private static let nameKey = "bravune.spotify.displayName"
+    /// Bravune's own Spotify app (Development Mode, at most 5 users added in its dashboard).
+    /// A Client ID is public; PKCE needs no client secret.
+    static let builtInClientID = "28fd9f1ea7394568b27e3cc371084413"
 
     let id = ProviderID.spotify
     let displayName = "Spotify"
@@ -43,7 +46,7 @@ final class SpotifyAdapter: ProviderAdapter {
 
     func connect() async throws {
         let defaults = UserDefaults.standard
-        guard let clientID = promptClientID(current: defaults.string(forKey: Self.clientKey)) else { return }
+        let clientID = Self.builtInClientID
         let session = SpotifySession(clientID: clientID)
         try await session.authorize()
         let newAPI = SpotifyAPI(session: session)
@@ -89,22 +92,5 @@ final class SpotifyAdapter: ProviderAdapter {
         let sorted = images.sorted { ($0.width ?? 0) < ($1.width ?? 0) }
         let chosen = sorted.first { ($0.width ?? 0) >= 300 } ?? sorted.last
         return chosen.flatMap { URL(string: $0.url) }
-    }
-
-    private func promptClientID(current: String?) -> String? {
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
-        field.placeholderString = "Spotify Client ID"
-        field.stringValue = current ?? ""
-
-        let alert = NSAlert()
-        alert.messageText = "Connect Spotify"
-        alert.informativeText = "Create an app at developer.spotify.com, add this Redirect URI, and paste its Client ID:\n\(SpotifySession.redirectURI)\n\nPlayback needs Spotify Premium and the Spotify app open on this Mac."
-        alert.accessoryView = field
-        alert.addButton(withTitle: "Connect")
-        alert.addButton(withTitle: "Cancel")
-        alert.window.initialFirstResponder = field
-        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
-        let value = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        return value.isEmpty ? nil : value
     }
 }
