@@ -339,8 +339,30 @@ Unknown:
        f. Menu bar play/pause and volume: the same audible effect as in the main window.
      Report per provider what was heard. Until then audible output stays unconfirmed in
      every validation note. Subsonic can only be checked once a server exists.
- 14. Keychain writes (Claude key, Subsonic password, Spotify token) were not exercised
-     through the packaged UI. Only the automated Keychain round-trip test covers them.
+ 14. OPEN, OWNER ACTION (needs the Mac): Keychain writes (Claude key, Subsonic password,
+     Jellyfin token, Spotify token) were not exercised through the packaged UI. Only the
+     automated Keychain round-trip test covers them. Checklist, about 15 minutes. Use a
+     throwaway Claude key value such as "test-key-123" (nothing calls the API when saving):
+     Keychain service is "com.bravune.app"; accounts: Claude key (see AIKey.account),
+     subsonic.password, jellyfin.token, spotify.refreshToken. Run Scripts/package.sh and open
+     dist/Bravune.app. To look at entries use Keychain Access (search "com.bravune.app") or:
+       security find-generic-password -s com.bravune.app -a <account>
+     (add -w to print the value; macOS may ask for permission, that is expected).
+       a. Settings: save the throwaway Claude key. Expect: the UI shows a key is set, and an
+          entry with that account exists in Keychain with the same value.
+       b. Quit with Cmd+Q, reopen. Expect: still shown as set (read back from Keychain).
+       c. Replace the key with another value. Expect: one entry only, new value (no duplicate).
+       d. Remove the key. Expect: the UI shows none and the entry is gone.
+       e. Subsonic: Providers > Connect with a Subsonic/Navidrome server (needs a server).
+          Expect entry subsonic.password; relaunch keeps the connection; Disconnect removes it.
+          Wrong password: expect the red connect error and NO entry left behind.
+       f. Jellyfin: same as e with a Jellyfin server; entry jellyfin.token holds a token, not
+          the password. Expect no entry for the password at any point.
+       g. Spotify is on hold: skip.
+       h. Rebuild with Scripts/package.sh (a new binary signature) and reopen. Report whether
+          macOS asks for Keychain access again: with the Personal Team certificate it may.
+     Steps a to d need no server. Steps e and f wait for a server, which is why this item stays
+     OPEN. Report what happened per step; nothing here counts as verified until then.
 
 ==================================================================
 6. WORKSTREAMS AND PRIORITIES
