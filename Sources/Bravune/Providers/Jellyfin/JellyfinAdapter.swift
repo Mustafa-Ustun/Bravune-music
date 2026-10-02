@@ -34,7 +34,7 @@ final class JellyfinAdapter: ProviderAdapter {
         self.init(session: Self.storedSession())
     }
 
-    static func storedDeviceId() -> String {
+    nonisolated static func storedDeviceId() -> String {
         let defaults = UserDefaults.standard
         if let existing = defaults.string(forKey: deviceKey) { return existing }
         let fresh = UUID().uuidString
