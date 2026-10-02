@@ -302,11 +302,28 @@ Unknown:
  10. CODE WRITTEN 2026-10-02, NOT COMPILED OR TESTED (see section 3): the folder is also stored as
      a security-scoped bookmark. Needs build, test run and a check on the Mac. Real sandbox
      behaviour can only be seen in a sandboxed build.
- 11. The Free/Pro/Pro+ plan can be changed by the user in Settings.
+ 11. ON HOLD (owner decision 2026-10-02): the Free/Pro/Pro+ plan can be changed by the user in
+     Settings. The real fix is StoreKit (Workstream 5, needs the paid Apple Developer Program).
+     Restricting the picker to debug builds was offered and not chosen. Do not work on it
+     until Workstream 5 starts.
  12. RESOLVED 2026-10-02: the project is a git repository, branch main, pushed to the private
      GitHub repository Mustafa-Ustun/Bravune-music. The logged-in account's e-mail could not
      be read with the current token, so it was not confirmed that it is hfv856@gmail.com.
- 13. Audible playback has never been confirmed by ear on any provider.
+ 13. OPEN, OWNER ACTION (only a person can hear it): audible playback has never been confirmed
+     by ear on any provider. Listening check, about 10 minutes on the Mac, speakers or
+     headphones on, system volume audible:
+       a. Run Scripts/package.sh, open dist/Bravune.app, connect Local Music with a folder of
+          real songs. Press play: music must be heard, matching the title shown.
+       b. Move the volume slider (and Cmd+Up / Cmd+Down) from low to high: loudness must
+          follow. Drag it to zero: silence.
+       c. Pause, then resume: sound stops and continues from the same place. Seek forward:
+          the sound jumps with the position shown.
+       d. Let a track end: the next one starts audibly with no gap or overlap, and the notice
+          or error line matches what is heard.
+       e. Apple Music (songs in the library): repeat a, c, d with one song.
+       f. Menu bar play/pause and volume: the same audible effect as in the main window.
+     Report per provider what was heard. Until then audible output stays unconfirmed in
+     every validation note. Subsonic can only be checked once a server exists.
  14. Keychain writes (Claude key, Subsonic password, Spotify token) were not exercised
      through the packaged UI. Only the automated Keychain round-trip test covers them.
 
